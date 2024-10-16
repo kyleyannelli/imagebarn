@@ -1,0 +1,25 @@
+<header id="header">
+    <div class="container grid center" style="min-height: 5rem;">
+        <section id="header-section" style="margin-top: 8px; margin-bottom: 8px;">
+            <img rel="preload" id="logo-img" src="/static/barnage.webp" width="1px" height="1px"
+                style="filter: brightness(1.0);" />
+            <a aria-label="Barn Image Uploader" data-discover="true" href="/">
+                <h1 id="header-text">ImageBarn</h1>
+            </a>
+        </section>
+    </div>
+</header>
+
+<script>
+    function adjustImageHeight() {
+        const headerText = document.getElementById('header-text');
+        const logoImg = document.getElementById('logo-img');
+        if (headerText && logoImg) {
+            logoImg.style.height = `${headerText.offsetHeight}px`;
+            logoImg.style.width = 'auto';
+        }
+    }
+
+    window.onload = adjustImageHeight;
+    window.onresize = adjustImageHeight;
+</script>

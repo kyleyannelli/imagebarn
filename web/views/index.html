@@ -1,0 +1,74 @@
+<section id="index-view" class="grid center" style="grid-template-columns: 1fr;">
+    {{ if eq nil .BarnageUser }}
+    <div>
+        <button class="animated-border" onclick="window.location.replace('/auth/google');">
+            <span>Sign In</span>
+        </button>
+        <p style="font-size: 0.5rem; opacity: 50%; padding-top: 4px; max-width: 6rem;">This will sign you out everywhere
+            else.</p>
+    </div>
+    {{ else if .BarnageUser.IsApproved }}
+    {{ if .BarnageUser.IsAdmin }}
+    <div class="grid container" style="grid-template-columns: 2fr; grid-column-gap: 6rem;">
+        <h3 style="grid-column: span 2;">Welcome, {{ .BarnageUser.Email }}</h3>
+        <div id="logout-div">
+            <button id="logout-btn" hx-get="/logout" hx-target="#index-view"><span class="desktop-only">Click
+                    Here</span><span class="mobile-only">Tap Here</span> to Logout</button>
+            <script>
+                document.getElementById('logout-btn').addEventListener('htmx:beforeRequest', function (event) {
+                    window.signedOut = true;
+                    clearInterval(window.storeImageHashIntervalId);
+                });
+            </script>
+        </div>
+        <div id="approve-container" class="grid center one-or-two" hx-get="/approve" hx-trigger="load"
+            hx-indicator=".approves-indicator" style="grid-template-columns: 1fr; grid-row-gap: 0;">
+            <div class="grid center approves-indicator" style="padding: 0.75px;" aria-busy="true"></div>
+        </div>
+        <script>
+            window.isSearchingFocused = false;
+
+            document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+                if (window.isSearchingFocused) {
+                    var searchInput = document.getElementById('approvals-search-input');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }
+            });
+        </script>
+        {{ template "views/partials/approved-index" }}
+    </div>
+    {{ else }}
+    <div class="grid container" style="grid-template-columns: 1fr; grid-column-gap: 0;">
+        <h3 style="">Welcome, {{ .BarnageUser.Email }}</h3>
+        <div id="logout-div">
+            <button id="logout-btn" hx-get="/logout" hx-target="#index-view"><span class="desktop-only">Click
+                    Here</span><span class="mobile-only">Tap Here</span> to Logout</button>
+            <script>
+                document.getElementById('logout-btn').addEventListener('htmx:beforeRequest', function (event) {
+                    window.signedOut = true;
+                    clearInterval(window.storeImageHashIntervalId);
+                });
+            </script>
+        </div>
+        {{ template "views/partials/approved-index" }}
+    </div>
+    {{ end }}
+    <script>
+        document.onload = () => {
+            if (localStorage.getItem("isApproved") == null || localStorage.getItem("isApproved") == "false") {
+                setTimeout(() => {htmx.trigger("#images", "imageFinishedUpload");}, 2500);
+                localStorage.setItem("isApproved", "true");
+            }
+        }
+    </script>
+    {{ else }}
+    <script>
+        localStorage.setItem("isApproved", "false");
+    </script>
+    <p class="shine" hx-get="/index-as-partial" hx-trigger="every 5s" hx-target="#index-view" hx-swap="outerHTML">
+        Your email {{ .BarnageUser.Email }} is awaiting approval.
+    </p>
+    {{ end }}
+</section>

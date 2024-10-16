@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+
+<head>
+    <title>ImageBarn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+    <script src="/static/js/htmx.min.js" preload></script>
+    <link rel="icon" type="image/webp" href="/static/barnage.webp" defer>
+    <link rel="apple-touch-icon" href="/static/barnage.webp" defer>
+</head>
+
+<body>
+    <div id="body-container">
+        {{template "views/partials/header" .}}
+        <main id="main" class="container" style="padding-top: 1.5rem; padding-bottom: 1.5rem;">
+            {{embed}}
+        </main>
+        {{template "views/partials/footer" .}}
+    </div>
+</body>
+
+</html>

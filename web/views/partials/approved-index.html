@@ -1,0 +1,133 @@
+<div id="images" class="container one-or-two" hx-get="/partials/images" hx-trigger="imageFinishedUpload"
+    style="padding-top: 1.5rem;">
+    <div class="grid center" style="padding: 0.75px;" aria-busy="true"></div>
+</div>
+<script>
+    let imagesHash = -1;
+    getAndStoreImagesHash()
+    const newImagesEvent = new Event("newImages");
+    function imagesLoaded(container, callback) {
+        const images = container.getElementsByTagName('img');
+        let loaded = 0;
+        const total = images.length;
+
+        if (total === 0) {
+            callback();
+            return;
+        }
+
+        for (let i = 0; i < total; i++) {
+            if (images[i].complete) {
+                loaded++;
+                if (loaded === total) {
+                    callback();
+                }
+            } else {
+                images[i].addEventListener('load', function () {
+                    loaded++;
+                    if (loaded === total) {
+                        callback();
+                    }
+                });
+                images[i].addEventListener('error', function () {
+                    loaded++;
+                    if (loaded === total) {
+                        callback();
+                    }
+                });
+            }
+        }
+    }
+
+    document.addEventListener("newImages", () => {
+        const container = document.getElementById("images-container");
+
+        imagesLoaded(container, function () {
+            document.getElementById("img-load-spinner").setAttribute("hidden", "");
+            animateThenDeleteGhostImages(container);
+        });
+    });
+
+
+    function animateThenDeleteGhostImages(container) {
+        Array.from(container.getElementsByTagName('img')).forEach((image) => {
+            const imgSrc = image.src;
+            if (imgSrc.endsWith('.ghost')) {
+                image.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+
+                image.addEventListener('transitionend', function onTransitionEnd(event) {
+                    if (event.propertyName === 'transform' || event.propertyName === 'filter') {
+                        image.removeEventListener('transitionend', onTransitionEnd);
+                        deleteImage(image);
+                    }
+                });
+                void image.offsetWidth;
+
+                image.classList.add('blurred');
+            }
+        });
+    }
+
+    function deleteImage(image) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("DELETE", image.src);
+        xhr.send();
+        image.remove();
+    }
+
+    function getAndStoreImagesHash() {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 204) && !window.isUploading) {
+                if (imagesHash != xhr.responseText) {
+                    imagesHash = xhr.responseText;
+                    htmx.trigger("#images", "imageFinishedUpload");
+                }
+            } else if (xhr.status === 401 && !window.signedOut) {
+                location.reload();
+            }
+        };
+        xhr.open("GET", "/image/hash/dir");
+        xhr.send();
+    }
+
+    if (window.isIntervalRunning == null || window.isIntervalRunning == false) {
+        window.isIntervalRunning = true;
+        window.signedOut = false;
+        window.storeImageHashIntervalId = setInterval(getAndStoreImagesHash, 2000);
+    }
+
+    window.isUploading = false;
+    function handleFileUpload(elm) {
+        if (!isUploading) {
+            isUploading = true;
+            const file = elm.files[0];
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append("image", file);
+
+            xhr.upload.addEventListener("progress", function (event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    document.getElementById("upload-percentage").innerHTML = Math.max(0, Math.min(100, Math.round(percentComplete))) + "%";
+                }
+            });
+
+            xhr.onreadystatechange = () => {
+                isUploading = !(xhr.readyState === XMLHttpRequest.DONE);
+            };
+
+            xhr.open("POST", "/image");
+            xhr.send(formData);
+            document.getElementById("upload-spinner").removeAttribute("hidden");
+            document.getElementById("upload-percentage").removeAttribute("hidden");
+            document.getElementById("photos-add-button").setAttribute("hidden", "");
+            if (document.getElementById("no-images-msg") != null) {
+                document.getElementById("no-images-msg").style.display = "none";
+            }
+        }
+    }
+</script>
