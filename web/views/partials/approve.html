@@ -1,0 +1,50 @@
+<div id="approvals-search-div" class="grid center" style="grid-template-columns: 1fr; grid-row-gap: 0;" hx-preserve>
+    <input id="approvals-search-input" type="search" name="search" placeholder="Search users..." hx-post="/approve"
+        autofocus="autofocus" hx-trigger="keyup changed delay:300ms, search" hx-target="#approve-container"
+        onfocus="window.isSearchingFocused = true;" onblur="window.isSearchingFocused = false;"
+        hx-indicator="#approves-search-indicator" hx-preserve />
+</div>
+<div class="grid center" id="approves-search-indicator"
+    style="padding: 0.85px; grid-template-columns: 1fr; grid-row-gap: 0;" aria-busy="true"></div>
+
+{{ range $idx, $elm := .ApprovedUsersSlice }}
+<div class="grid center" style="grid-template-columns: 2fr; grid-row-gap: 0;">
+    {{ if eq $elm.Email $elm.AdminUserEmail }}
+    <p style="margin: 0.25rem; font-size: .75rem; opacity: 0.5;">{{ $elm.Email }} (You)</p>
+    <button class="outline contrast button-sm" disabled>Disapprove</button>
+    {{ else }}
+    <p style="margin: 0.25rem; font-size: .75rem;">{{ $elm.Email }}</p>
+    {{ if $elm.IsApproved }}
+    <button hx-put="/disapprove/{{ .Email }}?{{ if $.CurrentPage }}page={{ $.CurrentPage }}{{ end}}"
+        hx-target="#approve-container" hx-indicator=".btn-indicator" hx-include="#approvals-search-input"
+        class="outline contrast button-sm grid btn-indicator actual-btn"><span
+            class="btn-indicator approve-disapprove-btn-text" style="grid-area: 1/1;">Disapprove</span>
+        <div class="grid center btn-indicator approve-disapprove-btn-indicator"
+            style="padding: 0.85px; margin: 0px; grid-template-columns: 1fr; grid-row-gap: 0; grid-area: 1/1;"
+            aria-busy="true"></div>
+    </button>
+    {{ else }}
+    <button hx-put="/approve/{{ .Email }}?{{ if $.CurrentPage }}page={{ $.CurrentPage }}{{ end}}"
+        hx-target="#approve-container" hx-indicator=".btn-indicator" hx-include="#approvals-search-input"
+        class="button-sm grid btn-indicator actual-btn"><span class="btn-indicator approve-disapprove-btn-text"
+            style="grid-area: 1/1;">Approve</span>
+        <div class="grid center btn-indicator approve-disapprove-btn-indicator"
+            style="padding: 0.85px; margin: 0px; grid-template-columns: 1fr; grid-row-gap: 0; grid-area: 1/1;"
+            aria-busy="true"></div>
+    </button>
+    {{ end }}
+    {{ end }}
+</div>
+{{ end }}
+
+{{ if not (eq .AvailablePages nil) }}
+<div class="grid center" id="approves-page-indicator"
+    style="padding: 0.85px; grid-template-columns: 1fr; grid-row-gap: 0;" aria-busy="true"></div>
+<div id="pagination" class="center container">
+    {{ range $idx, $pageNum := .AvailablePages }}
+    <button class="pagination-btn{{ if eq $pageNum $.CurrentPage }} contrast{{ else }} unselected{{ end }}"
+        hx-indicator="#approves-page-indicator" hx-get="/approve?page={{ $pageNum }}" hx-target="#approve-container">{{
+        $pageNum }}</button>
+    {{ end }}
+</div>
+{{ end }}

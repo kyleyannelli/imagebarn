@@ -1,0 +1,34 @@
+<div class="grid center"
+    style="padding-bottom: 1.5rem; {{ if .BarnageUser.IsAdmin }}padding-top: 1.5rem;{{ end }} grid-template-columns: 1fr; gap: 0;">
+    {{ if .BarnageUser.NoImages }}
+    <p id="no-images-msg">You have no images. Start by adding one below.</p>
+    {{ template "views/partials/upload-button" .}}
+    {{ else }}
+    {{ if not .BarnageUser.MaxedOut }}
+    {{ template "views/partials/upload-button" .}}
+    {{ else }}
+    <p style="font-size: 0.75rem;opacity: .7;color: #cb4c4e;">You have reached the maximum allowed images.</p>
+    {{ end }}
+</div>
+<div id="img-load-spinner" class="grid center" style="grid-template-columns: 1fr; gap: 0; padding-top: 1.5rem;">
+    <div class="grid center" style="padding: 0.75px;" aria-busy="true"></div>
+    <p style="font-size: 0.75rem; opacity: 0.1;">Loading your images...</p>
+</div>
+<div id="images-container" class="grid center">
+    {{ range .BarnageUser.Images }}
+    {{ if eq . "" }}
+    {{ break }}
+    {{ end }}
+    <img class="grid-item ghostable-img" src="/image/{{ . }}" />
+    {{ end }}
+</div>
+<!-- Maybe make this maintain server side? -->
+<!-- We can get rid of the hash route, one less network request.
+        Server will only send HTML if state has changed or page refresh.
+        hmmmm.
+-->
+<script>
+    document.dispatchEvent(new Event("newImages"));
+</script>
+{{ end }}
+<input type="file" id="fileInput" style="display:none" onchange="handleFileUpload(this)">

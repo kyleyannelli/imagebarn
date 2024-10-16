@@ -1,0 +1,8 @@
+{{ if eq nil .Error }}
+<div class="grid center" style="padding: 0.75px;" aria-busy="true"></div>
+<script>
+    window.onload = setTimeout(() => {window.location.replace("/")}, 500);
+</script>
+{{ else }}
+<h1>{{ .Error }}</h1>
+{{ end }}
