@@ -4,6 +4,12 @@ ImageBarn offers a distinctive way to share images using your Gmail (Google acco
 
 When an image is accessed via the API, it magically fades away from the uploader's account, signifying its one-time use. This feature provides an engaging method for sharing photos unpredictably. Users can also witness their photos seamlessly transitioning into whatever content you've configured the endpoint to display.
 
+### Admin Example
+![AdminExampleGIF](https://raw.githubusercontent.com/kyleyannelli/imagebarn/refs/heads/main/examples/admin-example-trimmed.gif)
+
+### General User Example
+![GeneralUserExampleGIF](https://raw.githubusercontent.com/kyleyannelli/imagebarn/refs/heads/main/examples/user-example-trimmed.gif)
+
 **Potential Use Cases:**
 
 - **Event Photo Sharing:** Perfect for occasions where photos can be shared in a random order, adding an element of surprise.
