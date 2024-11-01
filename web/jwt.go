@@ -90,9 +90,9 @@ func storeIssuedVersionsRoutine(stopChan chan struct{}, wg *sync.WaitGroup) {
 					slog.Warn(fmt.Sprintf("Failed to create file issued version storge!: %v", err))
 					continue
 				}
-				defer file.Close()
 
 				_, err = file.Write(data)
+				file.Close()
 				if err != nil {
 					slog.Warn(fmt.Sprintf("Failed write to file issued version storge!: %v", err))
 					continue

@@ -22,7 +22,7 @@ ImageBarn transforms the way images are shared, combining simplicity with a touc
 # Getting Started
 
 ### Installer Script (Recommended - Debian & Ubuntu Only)
-`sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/kyleyannelli/imagebarn/v1.0.0/install.sh)"`
+`sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/kyleyannelli/imagebarn/v1/install.sh)"`
 
 Use the service installer script. The script moves the binary to a suitable location, creates an imagebarn user, then creates a systemd service for ImageBarn.
 It is highly recommended to use NGINX or Caddy to use HTTPS. ImageBarn uses GoFiber, which is built on fasthttp. fasthttp does not support http/2, so https is left to a reverse proxy. This is why ImageBarn does not log path access.

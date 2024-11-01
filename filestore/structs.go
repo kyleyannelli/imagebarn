@@ -67,9 +67,9 @@ func (fs *Filestore) StoreApprovedUsersRoutine(stopChan chan struct{}) {
 					slog.Warn(fmt.Sprintf("Failed to create file authorized user storge!: %v", err))
 					continue
 				}
-				defer file.Close()
 
 				_, err = file.Write(data)
+				file.Close()
 				if err != nil {
 					slog.Warn(fmt.Sprintf("Failed write to file authorized user storge!: %v", err))
 					continue
