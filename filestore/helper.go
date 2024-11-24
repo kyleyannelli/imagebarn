@@ -127,19 +127,29 @@ func convertHeicToWebp(filePath, fileNameUnecoded, userFolder string) error {
 	if err != nil {
 		return err
 	}
-	newImgBytes, err := bimg.NewImage(fileBytes).Convert(bimg.WEBP)
+
+	options := bimg.Options{
+		Type:    bimg.WEBP,
+		Quality: 25,
+	}
+
+	newImgBytes, err := bimg.NewImage(fileBytes).Process(options)
 	if err != nil {
 		return err
 	}
+
 	newFilenameEnc := Encode(fmt.Sprintf("%v.webp", fileNameUnecoded))
+
 	err = bimg.Write(fmt.Sprintf("./images/%v/%v", userFolder, newFilenameEnc), newImgBytes)
 	if err != nil {
 		return err
 	}
+
 	err = os.Remove(filePath)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
