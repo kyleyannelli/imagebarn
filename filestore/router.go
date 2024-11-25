@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gopkg.in/h2non/bimg.v1"
 )
 
 func HashImageDir(c *fiber.Ctx) error {
@@ -31,16 +31,16 @@ func GetImage(c *fiber.Ctx) error {
 
 func UploadImage(c *fiber.Ctx) error {
 	email := c.Locals("email").(string)
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		return err
 	}
-	needToConvert := false
+
 	fileType := getHeaderIfAccepted(file.Header)
 	if fileType == "" {
 		return c.SendStatus(400)
 	}
-	needToConvert = fileType == "image/heic"
 
 	wg.Add(1)
 	defer wg.Done()
@@ -48,22 +48,76 @@ func UploadImage(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
 	filePath := fmt.Sprintf(IMAGES_DIR, Encode(email), Encode(file.Filename))
 	err = c.SaveFile(file, filePath)
 	if err != nil {
 		return err
 	}
 
-	if needToConvert {
-		Semaphore <- struct{}{}
+	Semaphore <- struct{}{}
+	defer func() { <-Semaphore }()
 
-		defer func() { <-Semaphore }()
-
-		// not necessary havent thought about this much
-		time.Sleep(1 * time.Second)
-		convertHeicToWebp(filePath, file.Filename, Encode(email))
+	err = compressAndResizeImage(filePath, file.Filename, Encode(email))
+	if err != nil {
+		return err
 	}
+
 	return c.SendStatus(201)
+}
+
+func compressAndResizeImage(filePath, fileNameUnecoded, userFolder string) error {
+	fileBytes, err := bimg.Read(filePath)
+	if err != nil {
+		return err
+	}
+
+	image := bimg.NewImage(fileBytes)
+	size, err := image.Size()
+	if err != nil {
+		return err
+	}
+
+	const largerDimension = 1280
+	const smallerDimension = 480
+
+	targetWidth, targetHeight := size.Width, size.Height
+	if size.Width > largerDimension || size.Height > largerDimension {
+		scale := float64(largerDimension) / float64(max(size.Width, size.Height))
+		targetWidth = int(float64(size.Width) * scale)
+		targetHeight = int(float64(size.Height) * scale)
+	} else if size.Width > smallerDimension || size.Height > smallerDimension {
+		scale := float64(smallerDimension) / float64(max(size.Width, size.Height))
+		targetWidth = int(float64(size.Width) * scale)
+		targetHeight = int(float64(size.Height) * scale)
+	}
+
+	options := bimg.Options{
+		Lossless: false,
+		Type:     bimg.WEBP,
+		Quality:  25,
+		Width:    targetWidth,
+		Height:   targetHeight,
+	}
+
+	newImgBytes, err := image.Process(options)
+	if err != nil {
+		return err
+	}
+
+	newFilenameEnc := Encode(fmt.Sprintf("%v.webp", fileNameUnecoded))
+	outputPath := fmt.Sprintf("./images/%v/%v", userFolder, newFilenameEnc)
+	err = bimg.Write(outputPath, newImgBytes)
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(filePath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func DeleteImage(c *fiber.Ctx) error {
