@@ -81,16 +81,14 @@ func compressAndResizeImage(filePath, fileNameUnecoded, userFolder string) error
 	const maxWidth = 1280
 	const maxHeight = 480
 
-	targetWidth, targetHeight := size.Width, size.Height
+	targetWidth := size.Width
 
-	if size.Width > maxWidth && (size.Height <= maxHeight || float64(maxWidth)/float64(size.Width) <= float64(maxHeight)/float64(size.Height)) {
-		scale := float64(maxWidth) / float64(size.Width)
-		targetWidth = maxWidth
-		targetHeight = int(float64(size.Height) * scale)
-	} else if size.Height > maxHeight {
-		scale := float64(maxHeight) / float64(size.Height)
+	if size.Width > maxWidth || size.Height > maxHeight {
+		widthScale := float64(maxWidth) / float64(size.Width)
+		heightScale := float64(maxHeight) / float64(size.Height)
+		scale := min(widthScale, heightScale)
+
 		targetWidth = int(float64(size.Width) * scale)
-		targetHeight = maxHeight
 	}
 
 	options := bimg.Options{
@@ -98,7 +96,6 @@ func compressAndResizeImage(filePath, fileNameUnecoded, userFolder string) error
 		Type:     bimg.WEBP,
 		Quality:  25,
 		Width:    targetWidth,
-		Height:   targetHeight,
 	}
 
 	newImgBytes, err := image.Process(options)
