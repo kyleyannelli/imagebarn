@@ -128,12 +128,37 @@ func convertHeicToWebp(filePath, fileNameUnecoded, userFolder string) error {
 		return err
 	}
 
-	options := bimg.Options{
-		Type:    bimg.WEBP,
-		Quality: 25,
+	const maxWidth = 720
+	const maxHeight = 480
+
+	image := bimg.NewImage(fileBytes)
+	size, err := image.Size()
+	if err != nil {
+		return err
 	}
 
-	newImgBytes, err := bimg.NewImage(fileBytes).Process(options)
+	width := size.Width
+	height := size.Height
+	scale := 1.0
+
+	if width > maxWidth || height > maxHeight {
+		widthScale := float64(maxWidth) / float64(width)
+		heightScale := float64(maxHeight) / float64(height)
+		scale = min(widthScale, heightScale)
+	}
+
+	resizedWidth := int(float64(width) * scale)
+	resizedHeight := int(float64(height) * scale)
+
+	options := bimg.Options{
+		Type:     bimg.WEBP,
+		Quality:  25,
+		Lossless: false,
+		Width:    resizedWidth,
+		Height:   resizedHeight,
+	}
+
+	newImgBytes, err := image.Process(options)
 	if err != nil {
 		return err
 	}
