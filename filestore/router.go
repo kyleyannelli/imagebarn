@@ -78,18 +78,19 @@ func compressAndResizeImage(filePath, fileNameUnecoded, userFolder string) error
 		return err
 	}
 
-	const largerDimension = 1280
-	const smallerDimension = 480
+	const maxWidth = 1280
+	const maxHeight = 480
 
 	targetWidth, targetHeight := size.Width, size.Height
-	if size.Width > largerDimension || size.Height > largerDimension {
-		scale := float64(largerDimension) / float64(max(size.Width, size.Height))
-		targetWidth = int(float64(size.Width) * scale)
+
+	if size.Width > maxWidth && (size.Height <= maxHeight || float64(maxWidth)/float64(size.Width) <= float64(maxHeight)/float64(size.Height)) {
+		scale := float64(maxWidth) / float64(size.Width)
+		targetWidth = maxWidth
 		targetHeight = int(float64(size.Height) * scale)
-	} else if size.Width > smallerDimension || size.Height > smallerDimension {
-		scale := float64(smallerDimension) / float64(max(size.Width, size.Height))
+	} else if size.Height > maxHeight {
+		scale := float64(maxHeight) / float64(size.Height)
 		targetWidth = int(float64(size.Width) * scale)
-		targetHeight = int(float64(size.Height) * scale)
+		targetHeight = maxHeight
 	}
 
 	options := bimg.Options{
